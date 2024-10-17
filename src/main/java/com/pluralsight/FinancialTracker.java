@@ -1,5 +1,9 @@
 package com.pluralsight;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -66,190 +70,61 @@ public class FinancialTracker {
         // The amount should be a positive number.
         // After validating the input, a new `Transaction` object should be created with the entered values.
         // The new deposit should be added to the `transactions` ArrayList.
-        public class FinancialTracker {
+        File file = new File(fileName);
 
-            // List to store the transactions
-            private static ArrayList<Transaction> transactions = new ArrayList<>();
-
-            // Method to load transactions from a file
-            public static void loadTransactions(String fileName) {
-                File file = new File(fileName);
-
-                try {
-                    // If the file doesn't exist, create a new one
-                    if (!file.exists()) {
-                        System.out.println("File does not exist. Creating a new file: " + fileName);
-                        file.createNewFile();
-                    }
-
-                    BufferedReader reader = new BufferedReader(new FileReader(file));
-                    String line;
-
-                    // Reading each line from the file
-                    while ((line = reader.readLine()) != null) {
-                        // Split the line into parts using the pipe "|" as a delimiter
-                        String[] parts = line.split("\\|");
-
-                        // Ensure the line has the correct number of parts (date, time, description, vendor, amount)
-                        if (parts.length == 5) {
-                            String date = parts[0];
-                            String time = parts[1];
-                            String description = parts[2];
-                            String vendor = parts[3];
-                            double amount;
-
-                            // Parse the amount from String to double and ensure it's positive for deposits
-                            try {
-                                amount = Double.parseDouble(parts[4]);
-                                if (amount <= 0) {
-                                    System.out.println("Invalid amount in transaction, must be positive: " + line);
-                                    continue; // Skip if the amount is not positive
-                                }
-                            } catch (NumberFormatException e) {
-                                System.out.println("Invalid amount format: " + parts[4]);
-                                continue; // Skip this line if the amount is invalid
-                            }
-
-                            // Create a new Transaction object and add it to the transactions list
-                            Transaction transaction = new Transaction(date, time, description, vendor, amount);
-                            transactions.add(transaction);
-                        } else {
-                            System.out.println("Invalid transaction format: " + line);
-                        }
-                    }
-
-                    reader.close(); // Close the file after reading
-                } catch (IOException e) {
-                    System.out.println("Error loading transactions from file: " + e.getMessage());
-                }
+        try {
+            // If the file doesn't exist, create a new one
+            if (!file.exists()) {
+                System.out.println("File does not exist. Creating a new file: " + fileName);
+                file.createNewFile();
             }
 
-            public static void main(String[] args) {
-                // Load transactions from the specified file
-                loadTransactions("transactions.txt");
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line;
 
-                // Display the transactions (for testing)
-                for (Transaction transaction : transactions) {
-                    System.out.println(transaction);
-                }
-            }
-        }
+            // Reading each line from the file
+            while ((line = reader.readLine()) != null) {
+                // Split the line into parts using the pipe "|" as a delimiter
+                String[] parts = line.split("\\|");
 
-// Transaction class to represent each transaction
-        class Transaction {
-            private String date;
-            private String time;
-            private String description;
-            private String vendor;
-            private double amount;
-
-            public Transaction(String date, String time, String description, String vendor, double amount) {
-                this.date = date;
-                this.time = time;
-                this.description = description;
-                this.vendor = vendor;
-                this.amount = amount;
-            }
-
-            @Override
-            public String toString() {
-                return date + " " + time + " | " + description + " | " + vendor + " | " + amount;
-            }
-        }
-    }private static void addDeposit(Scanner scanner) {
-            private static void addDeposit(Scanner scanner) {
-                System.out.println("Enter the deposit date and time (yyyy-MM-dd HH:mm:ss): ");
-                String dateTimeInput = scanner.nextLine();
-
-                LocalDateTime dateTime;
-                try {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                    dateTime = LocalDateTime.parse(dateTimeInput, formatter);
-                } catch (DateTimeParseException e) {
-                    System.out.println("Invalid date and time format. Please use yyyy-MM-dd HH:mm:ss.");
-                    return;
-                }
-
-                String date = dateTime.toLocalDate().toString();
-                String time = dateTime.toLocalTime().toString();
-
-                System.out.println("Enter the description of the deposit: ");
-                String description = scanner.nextLine();
-
-                System.out.println("Enter the vendor: ");
-                String vendor = scanner.nextLine();
-
-                System.out.println("Enter the amount (positive number): ");
-                double amount;
-                try {
-                    amount = Double.parseDouble(scanner.nextLine());
-                    if (amount <= 0) {
-                        System.out.println("Amount must be positive.");
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                    System.out.println("Invalid amount entered. Please enter a valid number.");
-                    return;
-                }
-
-                // Create a new Transaction object for the deposit
-                Transaction newDeposit = new Transaction(date, time, description, vendor, amount);
-                transactions.add(newDeposit);
-                System.out.println("Deposit added successfully.");
-            }
-
-
-
-            public static void addPayment(Scanner scanner) {
-        // This method should prompt the user to enter the date, time, description, vendor, and amount of a payment.
-        // The user should enter the date and time in the following format: yyyy-MM-dd HH:mm:ss
-        // The amount received should be a positive number then transformed to a negative number.
-        // After validating the input, a new `Transaction` object should be created with the entered values.
-        // The new payment should be added to the `transactions` ArrayList.
-
-        // Prompt user for date and time
-        System.out.println("Enter the payment date and time (yyyy-MM-dd HH:mm:ss): ");
-        String dateTimeInput = scanner.nextLine();
-                    System.out.println("Enter the payment " +
-                            "+date and time (yyyy-MM-dd HH:mm:ss): ");
-                    String dateTimeInput = scanner.nextLine();
-
-                    LocalDateTime dateTime;
-                    try {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                        dateTime = LocalDateTime.parse(dateTimeInput, formatter);
-                    } catch (DateTimeParseException e) {
-                        System.out.println("Invalid date and time format. Please use yyyy-MM-dd HH:mm:ss.");
-                        return;
-                    }
-
-                    String date = dateTime.toLocalDate().toString();
-                    String time = dateTime.toLocalTime().toString();
-
-                    System.out.println("Enter the description of the payment: ");
-                    String description = scanner.nextLine();
-
-                    System.out.println("Enter the vendor: ");
-                    String vendor = scanner.nextLine();
-
-                    System.out.println("Enter the amount (positive number): ");
+                // Ensure the line has the correct number of parts (date, time, description, vendor, amount)
+                if (parts.length == 5) {
+                    String date = parts[0];
+                    String time = parts[1];
+                    String description = parts[2];
+                    String vendor = parts[3];
                     double amount;
+
+                    // Parse the amount from String to double and ensure it's positive for deposits
                     try {
-                        amount = Double.parseDouble(scanner.nextLine());
+                        amount = Double.parseDouble(parts[4]);
                         if (amount <= 0) {
-                            System.out.println("Amount must be positive.");
-                            return;
+                            System.out.println("Invalid amount in transaction, must be positive: " + line);
+                            continue; // Skip if the amount is not positive
                         }
                     } catch (NumberFormatException e) {
-                        System.out.println("Invalid amount entered. Please enter a valid number.");
-                        return;
+                        System.out.println("Invalid amount format: " + parts[4]);
+                        continue; // Skip this line if the amount is invalid
                     }
 
-                    amount = -amount;
-                    Transaction newPayment = new Transaction(date, time, description, vendor, amount);
-                    transactions.add(newPayment);
-                    System.out.println("Payment added successfully.");
+                    // Create a new Transaction object and add it to the transactions list
+                    Transaction transaction = new Transaction(date, time, description, vendor, amount);
+                    transactions.add(transaction);
+                } else {
+                    System.out.println("Invalid transaction format: " + line);
                 }
+            }
+
+            reader.close(); // Close the file after reading
+        } catch (IOException e) {
+            System.out.println("Error loading transactions from file: " + e.getMessage());
+        }
+    }
+
+
+    private static void addDeposit(Scanner scanner) {
+        System.out.println("Enter the deposit date and time (yyyy-MM-dd HH:mm:ss): ");
+        String dateTimeInput = scanner.nextLine();
 
         LocalDateTime dateTime;
         try {
@@ -260,10 +135,60 @@ public class FinancialTracker {
             return;
         }
 
-
         String date = dateTime.toLocalDate().toString();
         String time = dateTime.toLocalTime().toString();
 
+        System.out.println("Enter the description of the deposit: ");
+        String description = scanner.nextLine();
+
+        System.out.println("Enter the vendor: ");
+        String vendor = scanner.nextLine();
+
+        System.out.println("Enter the amount (positive number): ");
+        double amount;
+        try {
+            amount = Double.parseDouble(scanner.nextLine());
+            if (amount <= 0) {
+                System.out.println("Amount must be positive.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid amount entered. Please enter a valid number.");
+            return;
+        }
+
+        // Create a new Transaction object for the deposit
+        Transaction newDeposit = new Transaction(date, time, description, vendor, amount);
+        transactions.add(newDeposit);
+        System.out.println("Deposit added successfully.");
+    }
+
+
+    public static void addPayment(Scanner scanner) {
+        // This method should prompt the user to enter the date, time, description, vendor, and amount of a payment.
+        // The user should enter the date and time in the following format: yyyy-MM-dd HH:mm:ss
+        // The amount received should be a positive number then transformed to a negative number.
+        // After validating the input, a new `Transaction` object should be created with the entered values.
+        // The new payment should be added to the `transactions` ArrayList.
+
+        // Prompt user for date and time
+        System.out.println("Enter the payment date and time (yyyy-MM-dd HH:mm:ss): ");
+        String dateTimeInput = scanner.nextLine();
+        System.out.println("Enter the payment " +
+                "+date and time (yyyy-MM-dd HH:mm:ss): ");
+        String dateTimeInput = scanner.nextLine();
+
+        LocalDateTime dateTime;
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            dateTime = LocalDateTime.parse(dateTimeInput, formatter);
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid date and time format. Please use yyyy-MM-dd HH:mm:ss.");
+            return;
+        }
+
+        String date = dateTime.toLocalDate().toString();
+        String time = dateTime.toLocalTime().toString();
 
         System.out.println("Enter the description of the payment: ");
         String description = scanner.nextLine();
@@ -271,7 +196,7 @@ public class FinancialTracker {
         System.out.println("Enter the vendor: ");
         String vendor = scanner.nextLine();
 
-        System.out.println("Enter the amount received (positive number): ");
+        System.out.println("Enter the amount (positive number): ");
         double amount;
         try {
             amount = Double.parseDouble(scanner.nextLine());
@@ -285,14 +210,8 @@ public class FinancialTracker {
         }
 
         amount = -amount;
-
-
         Transaction newPayment = new Transaction(date, time, description, vendor, amount);
-
-        // Add the new payment to the transactions ArrayList
         transactions.add(newPayment);
-
-
         System.out.println("Payment added successfully.");
     }
 
@@ -334,7 +253,7 @@ public class FinancialTracker {
 
 
     // This method should display a table of all transactions in the `transactions` ArrayList.
-    // The table should have columns for date, time, description, vendor, and amount.
+// The table should have columns for date, time, description, vendor, and amount.
     private static void displayLedger() {
         System.out.printf("Date", "Time", "Description", "Vendor", "Amount");
         for (Transaction transaction : transactions) {
@@ -393,111 +312,57 @@ public class FinancialTracker {
     }
 
 
-    private static void filterTransactionsByDate(LocalDate startDate, LocalDate endDate) {
+/*    private static void filterTransactionsByDate(LocalDate startDate, LocalDate endDate) {
         // This method filters the transactions by date and prints a report to the console.
         // It takes two parameters: startDate and endDate, which represent the range of dates to filter by.
         // The method loops through the transactions list and checks each transaction's date against the date range.
         // Transactions that fall within the date range are printed to the console.
         // If no transactions fall within the date range, the method prints a message indicating that there are no results.
-    }public class FinancialTracker {
+    }*/
 
-        private static ArrayList<Transaction> transactions = new ArrayList<>();
 
-        // Method to filter transactions by date range
-        private static void filterTransactionsByDate(LocalDate startDate, LocalDate endDate) {
-            boolean hasTransactions = false;
+    // Method to filter transactions by date range
+    private static void filterTransactionsByDate(LocalDate startDate, LocalDate endDate) {
+        boolean hasTransactions = false;
 
-            System.out.printf("%-15s %-15s %-25s %-20s %-10s%n", "Date", "Time", "Description", "Vendor", "Amount");
-            System.out.println("-------------------------------------------------------------------------------");
+        System.out.printf("%-15s %-15s %-25s %-20s %-10s%n", "Date", "Time", "Description", "Vendor", "Amount");
+        System.out.println("-------------------------------------------------------------------------------");
 
-            for (Transaction transaction : transactions) {
-                LocalDate transactionDate = LocalDate.parse(transaction.getDate()); // Assuming Transaction has a getDate() method
+        for (Transaction transaction : transactions) {
+            LocalDate transactionDate = LocalDate.parse(transaction.getDate()); // Assuming Transaction has a getDate() method
 
-                // Check if the transaction date falls within the startDate and endDate
-                if ((transactionDate.isEqual(startDate) || transactionDate.isAfter(startDate)) &&
-                        (transactionDate.isEqual(endDate) || transactionDate.isBefore(endDate))) {
+            // Check if the transaction date falls within the startDate and endDate
+            if ((transactionDate.isEqual(startDate) || transactionDate.isAfter(startDate)) &&
+                    (transactionDate.isEqual(endDate) || transactionDate.isBefore(endDate))) {
 
-                    // Print the transaction details
-                    System.out.printf("%-15s %-15s %-25s %-20s %-10.2f%n",
-                            transaction.getDate(),
-                            transaction.getTime(),
-                            transaction.getDescription(),
-                            transaction.getVendor(),
-                            transaction.getAmount());
+                // Print the transaction details
+                System.out.printf("%-15s %-15s %-25s %-20s %-10.2f%n",
+                        transaction.getDate(),
+                        transaction.getTime(),
+                        transaction.getDescription(),
+                        transaction.getVendor(),
+                        transaction.getAmount());
 
-                    hasTransactions = true;
-                }
-            }
-
-            // If no transactions were found in the given range
-            if (!hasTransactions) {
-                System.out.println("No transactions found within the specified date range.");
+                hasTransactions = true;
             }
         }
 
-        public static void main(String[] args) {
-            // For testing purposes, add some transactions
-            transactions.add(new Transaction("2023-04-15", "10:13:25", "Ergonomic keyboard", "Amazon", 89.50));
-            transactions.add(new Transaction("2023-05-20", "12:34:56", "Office chair", "IKEA", 150.00));
-            transactions.add(new Transaction("2023-07-10", "09:20:15", "Laptop", "Dell", 1200.00));
-
-            // Example of filtering transactions between two dates
-            LocalDate startDate = LocalDate.of(2023, 4, 1);
-            LocalDate endDate = LocalDate.of(2023, 6, 1);
-
-            filterTransactionsByDate(startDate, endDate);
+        // If no transactions were found in the given range
+        if (!hasTransactions) {
+            System.out.println("No transactions found within the specified date range.");
         }
     }
 
-    // Assuming the Transaction class looks like this
-    class Transaction {
-        private String date;
-        private String time;
-        private String description;
-        private String vendor;
-        private double amount;
 
-        public Transaction(String date, String time, String description, String vendor, double amount) {
-            this.date = date;
-            this.time = time;
-            this.description = description;
-            this.vendor = vendor;
-            this.amount = amount;
-        }
-
-        public String getDate() {
-            return date;
-        }
-
-        public String getTime() {
-            return time;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public String getVendor() {
-            return vendor;
-        }
-
-        public double getAmount() {
-            return amount;
-        }
-
-        @Override
-        public String toString() {
-            return date + " " + time + " | " + description + " | " + vendor + " | " + amount;
-        }
-    }
-
-    private static void filterTransactionsByVendor(String vendor) {
+/*    private static void filterTransactionsByVendor(String vendor) {
         // This method filters the transactions by vendor and prints a report to the console.
         // It takes one parameter: vendor, which represents the name of the vendor to filter by.
         // The method loops through the transactions list and checks each transaction's vendor name against the specified vendor name.
         // Transactions with a matching vendor name are printed to the console.
         // If no transactions match the specified vendor name, the method prints a message indicating that there are no results.
-    }private static void filterTransactionsByVendor(String vendor) {
+    }*/
+
+    private static void filterTransactionsByVendor(String vendor) {
         boolean hasTransactions = false;
 
         System.out.printf("%-15s %-15s %-25s %-20s %-10s%n", "Date", "Time", "Description", "Vendor", "Amount");
@@ -523,4 +388,5 @@ public class FinancialTracker {
             System.out.println("No transactions found for vendor: " + vendor);
         }
     }
+}
 
