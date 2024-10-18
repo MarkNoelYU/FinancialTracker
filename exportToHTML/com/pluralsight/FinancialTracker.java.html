@@ -1,0 +1,434 @@
+<html>
+<head>
+<title>FinancialTracker.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #808080;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+FinancialTracker.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com.pluralsight</span><span class="s0">;</span>
+
+<span class="s0">import </span><span class="s1">java.io.BufferedReader</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.io.File</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.io.FileReader</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.io.IOException</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.sql.SQLOutput</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.time.LocalDate</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.time.LocalDateTime</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.time.format.DateTimeFormatter</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.time.format.DateTimeParseException</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.util.ArrayList</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">java.util.Scanner</span><span class="s0">;</span>
+
+<span class="s0">public class </span><span class="s1">FinancialTracker {</span>
+
+    <span class="s0">private static </span><span class="s1">ArrayList&lt;Transaction&gt; transactions = </span><span class="s0">new </span><span class="s1">ArrayList&lt;Transaction&gt;()</span><span class="s0">;</span>
+    <span class="s0">private static final </span><span class="s1">String FILE_NAME = </span><span class="s2">&quot;transactions.csv&quot;</span><span class="s0">;</span>
+    <span class="s0">private static final </span><span class="s1">String DATE_FORMAT = </span><span class="s2">&quot;yyyy-MM-dd&quot;</span><span class="s0">;</span>
+    <span class="s0">private static final </span><span class="s1">String TIME_FORMAT = </span><span class="s2">&quot;HH:mm:ss&quot;</span><span class="s0">;</span>
+    <span class="s0">private static final </span><span class="s1">DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT)</span><span class="s0">;</span>
+    <span class="s0">private static final </span><span class="s1">DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern(TIME_FORMAT)</span><span class="s0">;</span>
+
+    <span class="s0">public static void </span><span class="s1">main(String[] args) {</span>
+        <span class="s1">loadTransactions(FILE_NAME)</span><span class="s0">;</span>
+        <span class="s1">Scanner scanner = </span><span class="s0">new </span><span class="s1">Scanner(System.in)</span><span class="s0">;</span>
+        <span class="s0">boolean </span><span class="s1">running = </span><span class="s0">true;</span>
+
+        <span class="s0">while </span><span class="s1">(running) {</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;Welcome to TransactionApp&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;Choose an option:&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;D) Add Deposit&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;P) Make Payment (Debit)&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;L) Ledger&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;X) Exit&quot;</span><span class="s1">)</span><span class="s0">;</span>
+
+            <span class="s1">String input = scanner.nextLine().trim()</span><span class="s0">;</span>
+
+            <span class="s0">switch </span><span class="s1">(input.toUpperCase()) {</span>
+                <span class="s0">case </span><span class="s2">&quot;D&quot;</span><span class="s1">:</span>
+                    <span class="s1">addDeposit(scanner)</span><span class="s0">;</span>
+                    <span class="s0">break;</span>
+                <span class="s0">case </span><span class="s2">&quot;P&quot;</span><span class="s1">:</span>
+                    <span class="s1">addPayment(scanner)</span><span class="s0">;</span>
+                    <span class="s0">break;</span>
+                <span class="s0">case </span><span class="s2">&quot;L&quot;</span><span class="s1">:</span>
+                    <span class="s1">ledgerMenu(scanner)</span><span class="s0">;</span>
+                    <span class="s0">break;</span>
+                <span class="s0">case </span><span class="s2">&quot;X&quot;</span><span class="s1">:</span>
+                    <span class="s1">running = </span><span class="s0">false;</span>
+                    <span class="s0">break;</span>
+                <span class="s0">default</span><span class="s1">:</span>
+                    <span class="s1">System.out.println(</span><span class="s2">&quot;Invalid option&quot;</span><span class="s1">)</span><span class="s0">;</span>
+                    <span class="s0">break;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+
+        <span class="s1">scanner.close()</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">public static void </span><span class="s1">loadTransactions(String fileName) {</span>
+        <span class="s3">// This method should load transactions from a file with the given file name.</span>
+        <span class="s3">// If the file does not exist, it should be created.</span>
+        <span class="s3">// The transactions should be stored in the `transactions` ArrayList.</span>
+        <span class="s3">// Each line of the file represents a single transaction in the following format:</span>
+        <span class="s3">// &lt;date&gt;|&lt;time&gt;|&lt;description&gt;|&lt;vendor&gt;|&lt;amount&gt;</span>
+        <span class="s3">// For example: 2023-04-15|10:13:25|ergonomic keyboard|Amazon|-89.50</span>
+        <span class="s3">// After reading all the transactions, the file should be closed.</span>
+        <span class="s3">// If any errors occur, an appropriate error message should be displayed.</span>
+        <span class="s3">// The amount should be a positive number.</span>
+        <span class="s3">// After validating the input, a new `Transaction` object should be created with the entered values.</span>
+        <span class="s3">// The new deposit should be added to the `transactions` ArrayList.</span>
+        <span class="s1">File file = </span><span class="s0">new </span><span class="s1">File(fileName)</span><span class="s0">;</span>
+
+        <span class="s0">try </span><span class="s1">{</span>
+
+            <span class="s0">if </span><span class="s1">(!file.exists()) {</span>
+                <span class="s1">System.out.println(</span><span class="s2">&quot;File does not exist. Creating a new file: &quot; </span><span class="s1">+ fileName)</span><span class="s0">;</span>
+                <span class="s1">file.createNewFile()</span><span class="s0">;</span>
+            <span class="s1">}</span>
+
+            <span class="s1">BufferedReader reader = </span><span class="s0">new </span><span class="s1">BufferedReader(</span><span class="s0">new </span><span class="s1">FileReader(file))</span><span class="s0">;</span>
+            <span class="s1">String line</span><span class="s0">;</span>
+
+
+            <span class="s0">while </span><span class="s1">((line = reader.readLine()) != </span><span class="s0">null</span><span class="s1">) {</span>
+                <span class="s3">// Split the line into parts using the pipe &quot;|&quot; as a delimiter</span>
+                <span class="s1">String[] parts = line.split(</span><span class="s2">&quot;</span><span class="s0">\\</span><span class="s2">|&quot;</span><span class="s1">)</span><span class="s0">;</span>
+
+                <span class="s3">// Ensure the line has the correct number of parts (date, time, description, vendor, amount)</span>
+                <span class="s0">if </span><span class="s1">(parts.length == </span><span class="s4">5</span><span class="s1">) {</span>
+                    <span class="s1">String date = parts[</span><span class="s4">0</span><span class="s1">]</span><span class="s0">;</span>
+                    <span class="s1">String time = parts[</span><span class="s4">1</span><span class="s1">]</span><span class="s0">;</span>
+                    <span class="s1">String description = parts[</span><span class="s4">2</span><span class="s1">]</span><span class="s0">;</span>
+                    <span class="s1">String vendor = parts[</span><span class="s4">3</span><span class="s1">]</span><span class="s0">;</span>
+                    <span class="s0">double </span><span class="s1">amount</span><span class="s0">;</span>
+
+
+                    <span class="s0">try </span><span class="s1">{</span>
+                        <span class="s1">amount = Double.parseDouble(parts[</span><span class="s4">4</span><span class="s1">])</span><span class="s0">;</span>
+                        <span class="s0">if </span><span class="s1">(amount &lt;= </span><span class="s4">0</span><span class="s1">) {</span>
+                            <span class="s1">System.out.println(</span><span class="s2">&quot;Invalid amount in transaction, must be positive: &quot; </span><span class="s1">+ line)</span><span class="s0">;</span>
+                            <span class="s0">continue; </span><span class="s3">// Skip if the amount is not positive</span>
+                        <span class="s1">}</span>
+                    <span class="s1">} </span><span class="s0">catch </span><span class="s1">(NumberFormatException e) {</span>
+                        <span class="s1">System.out.println(</span><span class="s2">&quot;Invalid amount format: &quot; </span><span class="s1">+ parts[</span><span class="s4">4</span><span class="s1">])</span><span class="s0">;</span>
+                        <span class="s0">continue; </span><span class="s3">// Skip this line if the amount is invalid</span>
+                    <span class="s1">}</span>
+
+
+                    <span class="s1">Transaction transaction = </span><span class="s0">new </span><span class="s1">Transaction(date</span><span class="s0">, </span><span class="s1">time</span><span class="s0">, </span><span class="s1">description</span><span class="s0">, </span><span class="s1">vendor</span><span class="s0">, </span><span class="s1">amount)</span><span class="s0">;</span>
+                    <span class="s1">transactions.add(transaction)</span><span class="s0">;</span>
+                <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+                    <span class="s1">System.out.println(</span><span class="s2">&quot;Invalid transaction format: &quot; </span><span class="s1">+ line)</span><span class="s0">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+
+            <span class="s1">reader.close()</span><span class="s0">;</span>
+        <span class="s1">} </span><span class="s0">catch </span><span class="s1">(IOException e) {</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;Error loading transactions from file: &quot; </span><span class="s1">+ e.getMessage())</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+
+    <span class="s0">private static void </span><span class="s1">addDeposit(Scanner scanner) {</span>
+        <span class="s1">System.out.println(</span><span class="s2">&quot;Enter the deposit date and time (yyyy-MM-dd HH:mm:ss): &quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">String dateTimeInput = scanner.nextLine()</span><span class="s0">;</span>
+
+        <span class="s1">LocalDateTime dateTime</span><span class="s0">;</span>
+        <span class="s0">try </span><span class="s1">{</span>
+            <span class="s1">DateTimeFormatter formatter = DateTimeFormatter.ofPattern(</span><span class="s2">&quot;yyyy-MM-dd HH:mm:ss&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">dateTime = LocalDateTime.parse(dateTimeInput</span><span class="s0">, </span><span class="s1">formatter)</span><span class="s0">;</span>
+        <span class="s1">} </span><span class="s0">catch </span><span class="s1">(DateTimeParseException e) {</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;Invalid date and time format. Please use yyyy-MM-dd HH:mm:ss.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s0">return;</span>
+        <span class="s1">}</span>
+
+        <span class="s1">String date = dateTime.toLocalDate().toString()</span><span class="s0">;</span>
+        <span class="s1">String time = dateTime.toLocalTime().toString()</span><span class="s0">;</span>
+
+        <span class="s1">System.out.println(</span><span class="s2">&quot;Enter the description of the deposit: &quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">String description = scanner.nextLine()</span><span class="s0">;</span>
+
+        <span class="s1">System.out.println(</span><span class="s2">&quot;Enter the vendor: &quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">String vendor = scanner.nextLine()</span><span class="s0">;</span>
+
+        <span class="s1">System.out.println(</span><span class="s2">&quot;Enter the amount (positive number): &quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s0">double </span><span class="s1">amount</span><span class="s0">;</span>
+        <span class="s0">try </span><span class="s1">{</span>
+            <span class="s1">amount = Double.parseDouble(scanner.nextLine())</span><span class="s0">;</span>
+            <span class="s0">if </span><span class="s1">(amount &lt;= </span><span class="s4">0</span><span class="s1">) {</span>
+                <span class="s1">System.out.println(</span><span class="s2">&quot;Amount must be positive.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+                <span class="s0">return;</span>
+            <span class="s1">}</span>
+        <span class="s1">} </span><span class="s0">catch </span><span class="s1">(NumberFormatException e) {</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;Invalid amount entered. Please enter a valid number.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s0">return;</span>
+        <span class="s1">}</span>
+
+
+        <span class="s1">Transaction newDeposit = </span><span class="s0">new </span><span class="s1">Transaction(date</span><span class="s0">, </span><span class="s1">time</span><span class="s0">, </span><span class="s1">description</span><span class="s0">, </span><span class="s1">vendor</span><span class="s0">, </span><span class="s1">amount)</span><span class="s0">;</span>
+        <span class="s1">transactions.add(newDeposit)</span><span class="s0">;</span>
+        <span class="s1">System.out.println(</span><span class="s2">&quot;Deposit added successfully.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+    <span class="s0">public static void </span><span class="s1">addPayment(Scanner scanner) {</span>
+        <span class="s3">// This method should prompt the user to enter the date, time, description, vendor, and amount of a payment.</span>
+        <span class="s3">// The user should enter the date and time in the following format: yyyy-MM-dd HH:mm:ss</span>
+        <span class="s3">// The amount received should be a positive number then transformed to a negative number.</span>
+        <span class="s3">// After validating the input, a new `Transaction` object should be created with the entered values.</span>
+        <span class="s3">// The new payment should be added to the `transactions` ArrayList.</span>
+
+
+        <span class="s1">System.out.println(</span><span class="s2">&quot;Enter the payment date and time (yyyy-MM-dd HH:mm:ss): &quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">String dateTimeInput = scanner.nextLine()</span><span class="s0">;</span>
+        <span class="s1">System.out.println(</span><span class="s2">&quot;Enter the payment &quot; </span><span class="s1">+</span>
+                <span class="s2">&quot;+date and time (yyyy-MM-dd HH:mm:ss): &quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">String(scanner) = scanner.nextLine()</span><span class="s0">;</span>
+
+        <span class="s1">LocalDateTime dateTime</span><span class="s0">;</span>
+        <span class="s0">try </span><span class="s1">{</span>
+            <span class="s1">DateTimeFormatter formatter = DateTimeFormatter.ofPattern(</span><span class="s2">&quot;yyyy-MM-dd HH:mm:ss&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">dateTime = LocalDateTime</span><span class="s0">;</span>
+        <span class="s1">} </span><span class="s0">catch </span><span class="s1">(DateTimeParseException e) {</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;Invalid date and time format. Please use yyyy-MM-dd HH:mm:ss.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s0">return;</span>
+        <span class="s1">}</span>
+
+        <span class="s1">String date = dateTime.toLocalDate().toString()</span><span class="s0">;</span>
+        <span class="s1">String time = dateTime.toLocalTime().toString()</span><span class="s0">;</span>
+
+        <span class="s1">System.out.println(</span><span class="s2">&quot;Enter the description of the payment: &quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">String description = scanner.nextLine()</span><span class="s0">;</span>
+
+        <span class="s1">System.out.println(</span><span class="s2">&quot;Enter the vendor: &quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">String vendor = scanner.nextLine()</span><span class="s0">;</span>
+
+        <span class="s1">System.out.println(</span><span class="s2">&quot;Enter the amount (positive number): &quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s0">double </span><span class="s1">amount</span><span class="s0">;</span>
+        <span class="s0">try </span><span class="s1">{</span>
+            <span class="s1">amount = Double.parseDouble(scanner.nextLine())</span><span class="s0">;</span>
+            <span class="s0">if </span><span class="s1">(amount &lt;= </span><span class="s4">0</span><span class="s1">) {</span>
+                <span class="s1">System.out.println(</span><span class="s2">&quot;Amount must be positive.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+                <span class="s0">return;</span>
+            <span class="s1">}</span>
+        <span class="s1">} </span><span class="s0">catch </span><span class="s1">(NumberFormatException e) {</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;Invalid amount entered. Please enter a valid number.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s0">return;</span>
+        <span class="s1">}</span>
+
+        <span class="s1">amount = -amount</span><span class="s0">;</span>
+        <span class="s1">Transaction newPayment = </span><span class="s0">new </span><span class="s1">Transaction(date</span><span class="s0">, </span><span class="s1">time</span><span class="s0">, </span><span class="s1">description</span><span class="s0">, </span><span class="s1">vendor</span><span class="s0">, </span><span class="s1">amount)</span><span class="s0">;</span>
+        <span class="s1">transactions.add(newPayment)</span><span class="s0">;</span>
+        <span class="s1">System.out.println(</span><span class="s2">&quot;Payment added successfully.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+
+
+    <span class="s0">private static void </span><span class="s1">ledgerMenu(Scanner scanner) {</span>
+        <span class="s0">boolean </span><span class="s1">running = </span><span class="s0">true;</span>
+        <span class="s0">while </span><span class="s1">(running) {</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;Ledger&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;Choose an option:&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;A) A`ll&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;D) Deposits&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;P) Payments&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;R) Reports&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;H) Home&quot;</span><span class="s1">)</span><span class="s0">;</span>
+
+            <span class="s1">String input = scanner.nextLine().trim()</span><span class="s0">;</span>
+
+            <span class="s0">switch </span><span class="s1">(input.toUpperCase()) {</span>
+                <span class="s0">case </span><span class="s2">&quot;A&quot;</span><span class="s1">:</span>
+                    <span class="s1">displayLedger()</span><span class="s0">;</span>
+                    <span class="s0">break;</span>
+                <span class="s0">case </span><span class="s2">&quot;D&quot;</span><span class="s1">:</span>
+                    <span class="s1">displayDeposits()</span><span class="s0">;</span>
+                    <span class="s0">break;</span>
+                <span class="s0">case </span><span class="s2">&quot;P&quot;</span><span class="s1">:</span>
+                    <span class="s1">displayPayments()</span><span class="s0">;</span>
+                    <span class="s0">break;</span>
+                <span class="s0">case </span><span class="s2">&quot;R&quot;</span><span class="s1">:</span>
+                    <span class="s1">reportsMenu(scanner)</span><span class="s0">;</span>
+                    <span class="s0">break;</span>
+                <span class="s0">case </span><span class="s2">&quot;H&quot;</span><span class="s1">:</span>
+                    <span class="s1">running = </span><span class="s0">false;</span>
+                <span class="s0">default</span><span class="s1">:</span>
+                    <span class="s1">System.out.println(</span><span class="s2">&quot;Invalid option&quot;</span><span class="s1">)</span><span class="s0">;</span>
+                    <span class="s0">break;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s0">private static void </span><span class="s1">displayLedger() {</span>
+        <span class="s1">System.out.printf(</span><span class="s2">&quot;Date&quot;</span><span class="s0">, </span><span class="s2">&quot;Time&quot;</span><span class="s0">, </span><span class="s2">&quot;Description&quot;</span><span class="s0">, </span><span class="s2">&quot;Vendor&quot;</span><span class="s0">, </span><span class="s2">&quot;Amount&quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s0">for </span><span class="s1">(Transaction transaction : transactions) {</span>
+            <span class="s1">System.out.println(transaction)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s0">private static void </span><span class="s1">displayDeposits() {</span>
+        <span class="s3">// This method should display a table of all deposits in the `transactions` ArrayList.</span>
+        <span class="s3">// The table should have columns for date, time, description, vendor, and amount.</span>
+    <span class="s1">}System.out.printf(</span><span class="s2">&quot;%-15s %-15s %-25s %-20s %-10s%n&quot;</span><span class="s0">, </span><span class="s2">&quot;Date&quot;</span><span class="s0">, </span><span class="s2">&quot;Time&quot;</span><span class="s0">, </span><span class="s2">&quot;Description&quot;</span><span class="s0">, </span><span class="s2">&quot;Vendor&quot;</span><span class="s0">, </span><span class="s2">&quot;Amount&quot;</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">System.out.println(</span><span class="s2">&quot;-------------------------------------------------------------------------------&quot;</span><span class="s1">)</span><span class="s0">;</span>
+
+    <span class="s0">boolean </span><span class="s1">hasDeposits = </span><span class="s0">false; </span><span class="s3">// Flag to check if there are any deposits</span>
+
+    <span class="s3">// Iterate through the transactions list</span>
+    <span class="s0">for </span><span class="s1">(Transaction transaction : transactions) {</span>
+        <span class="s3">// Check if the transaction is a deposit (positive amount)</span>
+        <span class="s0">if </span><span class="s1">(transaction.getAmount() &gt; </span><span class="s4">0</span><span class="s1">) {</span>
+            <span class="s3">// Print the transaction details in tabular format</span>
+            <span class="s1">System.out.printf(</span><span class="s2">&quot;%-15s %-15s %-25s %-20s %-10.2f%n&quot;</span><span class="s0">,</span>
+                    <span class="s1">transaction.getDate()</span><span class="s0">,</span>
+                    <span class="s1">transaction.getTime()</span><span class="s0">,</span>
+                    <span class="s1">transaction.getDescription()</span><span class="s0">,</span>
+                    <span class="s1">transaction.getVendor()</span><span class="s0">,</span>
+                    <span class="s1">transaction.getAmount())</span><span class="s0">;</span>
+            <span class="s1">hasDeposits = </span><span class="s0">true; </span><span class="s3">// Set the flag to true when deposits are found</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s3">// If no deposits are found, print a message</span>
+    <span class="s0">if </span><span class="s1">(!hasDeposits) {</span>
+        <span class="s1">System.out.println(</span><span class="s2">&quot;No deposits found.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+    <span class="s0">private static void </span><span class="s1">displayPayments() {</span>
+        <span class="s3">// This method should display a table of all payments in the `transactions` ArrayList.</span>
+        <span class="s3">// The table should have columns for date, time, description, vendor, and amount.</span>
+    <span class="s1">}</span>
+
+    <span class="s0">private static void </span><span class="s1">reportsMenu(Scanner scanner) {</span>
+        <span class="s0">boolean </span><span class="s1">running = </span><span class="s0">true;</span>
+        <span class="s0">while </span><span class="s1">(running) {</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;Reports&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;Choose an option:&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;1) Month To Date&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;2) Previous Month&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;3) Year To Date&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;4) Previous Year&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;5) Search by Vendor&quot;</span><span class="s1">)</span><span class="s0">;</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;0) Back&quot;</span><span class="s1">)</span><span class="s0">;</span>
+
+            <span class="s1">String input = scanner.nextLine().trim()</span><span class="s0">;</span>
+
+            <span class="s0">switch </span><span class="s1">(input) {</span>
+                <span class="s0">case </span><span class="s2">&quot;1&quot;</span><span class="s1">:</span>
+                    <span class="s3">// Generate a report for all transactions within the current month,</span>
+                    <span class="s3">// including the date, time, description, vendor, and amount for each transaction.</span>
+                <span class="s0">case </span><span class="s2">&quot;2&quot;</span><span class="s1">:</span>
+                    <span class="s3">// Generate a report for all transactions within the previous month,</span>
+                    <span class="s3">// including the date, time, description, vendor, and amount for each transaction.</span>
+                <span class="s0">case </span><span class="s2">&quot;3&quot;</span><span class="s1">:</span>
+                    <span class="s3">// Generate a report for all transactions within the current year,</span>
+                    <span class="s3">// including the date, time, description, vendor, and amount for each transaction.</span>
+
+                <span class="s0">case </span><span class="s2">&quot;4&quot;</span><span class="s1">:</span>
+                    <span class="s3">// Generate a report for all transactions within the previous year,</span>
+                    <span class="s3">// including the date, time, description, vendor, and amount for each transaction.</span>
+                <span class="s0">case </span><span class="s2">&quot;5&quot;</span><span class="s1">:</span>
+                    <span class="s3">// Prompt the user to enter a vendor name, then generate a report for all transactions</span>
+                    <span class="s3">// with that vendor, including the date, time, description, vendor, and amount for each transaction.</span>
+                <span class="s0">case </span><span class="s2">&quot;0&quot;</span><span class="s1">:</span>
+                    <span class="s1">running = </span><span class="s0">false;</span>
+                <span class="s0">default</span><span class="s1">:</span>
+                    <span class="s1">System.out.println(</span><span class="s2">&quot;Invalid option&quot;</span><span class="s1">)</span><span class="s0">;</span>
+                    <span class="s0">break;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+
+<span class="s3">/*    private static void filterTransactionsByDate(LocalDate startDate, LocalDate endDate) { 
+        // This method filters the transactions by date and prints a report to the console. 
+        // It takes two parameters: startDate and endDate, which represent the range of dates to filter by. 
+        // The method loops through the transactions list and checks each transaction's date against the date range. 
+        // Transactions that fall within the date range are printed to the console. 
+        // If no transactions fall within the date range, the method prints a message indicating that there are no results. 
+    }*/</span>
+
+
+
+    <span class="s0">private static void </span><span class="s1">filterTransactionsByDate(LocalDate startDate</span><span class="s0">, </span><span class="s1">LocalDate endDate) {</span>
+        <span class="s0">boolean </span><span class="s1">hasTransactions = </span><span class="s0">false;</span>
+
+        <span class="s1">System.out.printf(</span><span class="s2">&quot;%-15s %-15s %-25s %-20s %-10s%n&quot;</span><span class="s0">, </span><span class="s2">&quot;Date&quot;</span><span class="s0">, </span><span class="s2">&quot;Time&quot;</span><span class="s0">, </span><span class="s2">&quot;Description&quot;</span><span class="s0">, </span><span class="s2">&quot;Vendor&quot;</span><span class="s0">, </span><span class="s2">&quot;Amount&quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">System.out.println(</span><span class="s2">&quot;-------------------------------------------------------------------------------&quot;</span><span class="s1">)</span><span class="s0">;</span>
+
+        <span class="s0">for </span><span class="s1">(Transaction transaction : transactions) {</span>
+            <span class="s1">LocalDate transactionDate = LocalDate.parse(transaction.getDate())</span><span class="s0">; </span><span class="s3">// Assuming Transaction has a getDate() method</span>
+
+            <span class="s3">// Check if the transaction date falls within the startDate and endDate</span>
+            <span class="s0">if </span><span class="s1">((transactionDate.isEqual(startDate) || transactionDate.isAfter(startDate)) &amp;&amp;</span>
+                    <span class="s1">(transactionDate.isEqual(endDate) || transactionDate.isBefore(endDate))) {</span>
+
+                <span class="s3">// Print the transaction details</span>
+                <span class="s1">System.out.printf(</span><span class="s2">&quot;%-15s %-15s %-25s %-20s %-10.2f%n&quot;</span><span class="s0">,</span>
+                        <span class="s1">transaction.getDate()</span><span class="s0">,</span>
+                        <span class="s1">transaction.getTime()</span><span class="s0">,</span>
+                        <span class="s1">transaction.getDescription()</span><span class="s0">,</span>
+                        <span class="s1">transaction.getVendor()</span><span class="s0">,</span>
+                        <span class="s1">transaction.getAmount())</span><span class="s0">;</span>
+
+                <span class="s1">hasTransactions = </span><span class="s0">true;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+
+        <span class="s3">// If no transactions were found in the given range</span>
+        <span class="s0">if </span><span class="s1">(!hasTransactions) {</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;No transactions found within the specified date range.&quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+
+<span class="s3">/*    private static void filterTransactionsByVendor(String vendor) { 
+        // This method filters the transactions by vendor and prints a report to the console. 
+        // It takes one parameter: vendor, which represents the name of the vendor to filter by. 
+        // The method loops through the transactions list and checks each transaction's vendor name against the specified vendor name. 
+        // Transactions with a matching vendor name are printed to the console. 
+        // If no transactions match the specified vendor name, the method prints a message indicating that there are no results. 
+    }*/</span>
+
+    <span class="s0">private static void </span><span class="s1">filterTransactionsByVendor(String vendor) {</span>
+        <span class="s0">boolean </span><span class="s1">hasTransactions = </span><span class="s0">false;</span>
+
+        <span class="s1">System.out.printf(</span><span class="s2">&quot;%-15s %-15s %-25s %-20s %-10s%n&quot;</span><span class="s0">, </span><span class="s2">&quot;Date&quot;</span><span class="s0">, </span><span class="s2">&quot;Time&quot;</span><span class="s0">, </span><span class="s2">&quot;Description&quot;</span><span class="s0">, </span><span class="s2">&quot;Vendor&quot;</span><span class="s0">, </span><span class="s2">&quot;Amount&quot;</span><span class="s1">)</span><span class="s0">;</span>
+        <span class="s1">System.out.println(</span><span class="s2">&quot;-------------------------------------------------------------------------------&quot;</span><span class="s1">)</span><span class="s0">;</span>
+
+        <span class="s0">for </span><span class="s1">(Transaction transaction : transactions) {</span>
+            <span class="s3">// Check if the transaction's vendor matches the specified vendor name (case-insensitive)</span>
+            <span class="s0">if </span><span class="s1">(transaction.getVendor().equalsIgnoreCase(vendor)) {</span>
+                <span class="s3">// Print the matching transaction details</span>
+                <span class="s1">System.out.printf(</span><span class="s2">&quot;%-15s %-15s %-25s %-20s %-10.2f%n&quot;</span><span class="s0">,</span>
+                        <span class="s1">transaction.getDate()</span><span class="s0">,</span>
+                        <span class="s1">transaction.getTime()</span><span class="s0">,</span>
+                        <span class="s1">transaction.getDescription()</span><span class="s0">,</span>
+                        <span class="s1">transaction.getVendor()</span><span class="s0">,</span>
+                        <span class="s1">transaction.getAmount())</span><span class="s0">;</span>
+
+                <span class="s1">hasTransactions = </span><span class="s0">true;</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+
+        <span class="s3">// If no transactions matched the specified vendor</span>
+        <span class="s0">if </span><span class="s1">(!hasTransactions) {</span>
+            <span class="s1">System.out.println(</span><span class="s2">&quot;No transactions found for vendor: &quot; </span><span class="s1">+ vendor)</span><span class="s0">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+<span class="s1">}</span>
+
+</pre>
+</body>
+</html>
